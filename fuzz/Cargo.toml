@@ -1,0 +1,21 @@
+[package]
+name = "hashlink-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4.13"
+
+[dependencies.hashlink]
+path = ".."
+
+[[bin]]
+name = "linked_hash_map"
+path = "fuzz_targets/linked_hash_map.rs"
+test = false
+doc = false
+bench = false

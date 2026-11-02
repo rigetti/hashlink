@@ -48,6 +48,52 @@ linked list, and the unsafe code has diverged quite a lot from the original
 sanitizers, but it should probably still receive more review and testing, and
 check for test code coverage.
 
+## Testing unsafe code
+
+The integration test `tests/proptest.rs` uses proptest to compare random operation
+sequences against a linear, ordered reference model. It checks contents, lookups,
+length, and forward/backward iteration after each operation, using both the default
+hasher and a deliberately colliding hasher. Heap-owned keys and values exercise
+destruction as well as node reuse, cursor insertion, reordering, retention,
+resizing, mutable iteration, and partially consumed drains and owning iterators.
+The map contains the shared unsafe linked-list implementation used by the set and
+LRU cache.
+
+Run the property tests with:
+
+```sh
+cargo test --locked --test proptest
+PROPTEST_CASES=10000 cargo test --locked --test proptest
+cargo +nightly miri test --locked --test proptest
+```
+
+These tests also run in the existing Miri and sanitizer CI jobs, with smaller
+default case counts and sequences under Miri. Proptest shrinks failing sequences
+and saves regression seeds; keep those seeds when adding a regression test.
+Seed persistence is disabled under Miri to avoid filesystem access in isolation.
+
+The `fuzz/` package uses cargo-fuzz/libFuzzer and the same reference-model runner:
+
+```sh
+cargo install cargo-fuzz --locked
+cargo +nightly fuzz run linked_hash_map -- -max_len=1024
+# Bounded smoke test:
+cargo +nightly fuzz run linked_hash_map -- -max_len=1024 -max_total_time=30
+# Replay a saved failure:
+cargo +nightly fuzz run linked_hash_map fuzz/artifacts/linked_hash_map/<artifact>
+```
+
+Each four input bytes encode an operation, a key, and a little-endian `i16`
+value. Inputs are limited to 256 operations and 32 distinct keys to favor
+replacement and node reuse while bounding resource consumption. Generated
+corpora, crash artifacts, coverage output, and fuzz build output are ignored.
+
+The GitHub Actions CI workflow preserves upstream's checks and also runs dedicated
+property-test and 30-second fuzz-smoke jobs on pull requests and pushes to `main`.
+It can also be started manually using **Run workflow** in the Actions tab.
+On a new fork, enable repository workflows in the Actions tab if GitHub prompts
+for it; workflow files alone cannot enable repository-level Actions settings.
+
 ## Credit
 
 There is a huge amount of code in this crate that is copied verbatim from
