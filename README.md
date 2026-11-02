@@ -88,6 +88,12 @@ value. Inputs are limited to 256 operations and 32 distinct keys to favor
 replacement and node reuse while bounding resource consumption. Generated
 corpora, crash artifacts, coverage output, and fuzz build output are ignored.
 
+The GitHub Actions CI workflow preserves upstream's checks and also runs dedicated
+property-test and 30-second fuzz-smoke jobs on pull requests and pushes to `main`.
+It can also be started manually using **Run workflow** in the Actions tab.
+On a new fork, enable repository workflows in the Actions tab if GitHub prompts
+for it; workflow files alone cannot enable repository-level Actions settings.
+
 ## Credit
 
 There is a huge amount of code in this crate that is copied verbatim from
