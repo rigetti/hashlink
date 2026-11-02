@@ -5,6 +5,11 @@ use proptest::prelude::*;
 proptest! {
     #![proptest_config(ProptestConfig {
         cases: if cfg!(miri) { 8 } else { 128 },
+        failure_persistence: if cfg!(miri) {
+            None
+        } else {
+            ProptestConfig::default().failure_persistence
+        },
         ..ProptestConfig::default()
     })]
 

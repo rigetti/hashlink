@@ -70,6 +70,7 @@ cargo +nightly miri test --locked --test proptest
 These tests also run in the existing Miri and sanitizer CI jobs, with smaller
 default case counts and sequences under Miri. Proptest shrinks failing sequences
 and saves regression seeds; keep those seeds when adding a regression test.
+Seed persistence is disabled under Miri to avoid filesystem access in isolation.
 
 The `fuzz/` package uses cargo-fuzz/libFuzzer and the same reference-model runner:
 
